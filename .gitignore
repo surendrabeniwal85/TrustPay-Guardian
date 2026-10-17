@@ -1,0 +1,61 @@
+# Compiled Java & Maven output
+backend/target/
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# Node & Frontend dependencies and builds
+frontend/node_modules/
+node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+*.tsbuildinfo
+.npm/
+
+# Environment files and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+
+# Logs and runtime diagnostics
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE and Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+.springBeans
+
+# Operating system files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Testing and Code Coverage
+frontend/coverage/
+backend/target/site/jacoco/
+.nyc_output/
+playwright-report/
+test-results/

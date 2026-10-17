@@ -1,0 +1,36 @@
+name: Bug Report
+description: Create a report to help us improve TrustPay Guardian
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue!
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Provide a clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this behavior?
+      placeholder: |
+        1. Start backend...
+        2. Open frontend at...
+        3. Click on...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Info
+      description: OS, Java version, Node version, Browser
+      value: |
+        - OS: Windows 11
+        - Java: JDK 25
+        - Node: v24.15.0
+        - MySQL: 8.4.11

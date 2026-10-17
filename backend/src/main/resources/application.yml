@@ -1,0 +1,28 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: trustpay-guardian-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Actuator Health Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Application Metadata & Default Properties
+app:
+  name: "TrustPay Guardian: Fraud-Aware Digital Banking Platform"
+  simulation-mode: true
+  security:
+    cors:
+      allowed-origin: ${FRONTEND_ORIGIN:http://localhost:5173}

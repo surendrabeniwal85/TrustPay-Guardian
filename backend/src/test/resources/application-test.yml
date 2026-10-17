@@ -1,0 +1,11 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: trustpay-guardian-backend-test
+
+app:
+  security:
+    cors:
+      allowed-origin: http://localhost:5173

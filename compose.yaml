@@ -1,0 +1,29 @@
+# ==============================================================================
+# TrustPay Guardian — Optional Docker Compose Specification
+# Local native Windows development is the primary mode.
+# This compose file is provided for optional containerized environments.
+# ==============================================================================
+
+services:
+  mysql:
+    image: mysql:8.4.11
+    container_name: trustpay-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-trustpay_guardian}
+      MYSQL_USER: ${MYSQL_USER:-trustpay_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-trustpay_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+    driver: local
