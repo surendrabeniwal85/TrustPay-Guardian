@@ -12,6 +12,7 @@ import com.trustpay.guardian.beneficiary.BeneficiaryRepository;
 import com.trustpay.guardian.common.web.PageResponse;
 import com.trustpay.guardian.common.exception.*;
 import com.trustpay.guardian.fraud.*;
+import com.trustpay.guardian.notification.EmailService;
 import com.trustpay.guardian.notification.NotificationService;
 import com.trustpay.guardian.notification.NotificationType;
 import com.trustpay.guardian.settings.SystemSettingRepository;
@@ -53,6 +54,7 @@ public class TransferService {
     private final FraudAlertHitRepository fraudAlertHitRepository;
     private final SystemSettingRepository systemSettingRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
     private final AuditService auditService;
     private final TransactionReferenceGenerator referenceGenerator;
     private final TransactionTemplate transactionTemplate;
@@ -67,6 +69,7 @@ public class TransferService {
             FraudAlertHitRepository fraudAlertHitRepository,
             SystemSettingRepository systemSettingRepository,
             NotificationService notificationService,
+            EmailService emailService,
             AuditService auditService,
             TransactionReferenceGenerator referenceGenerator,
             TransactionTemplate transactionTemplate) {
@@ -79,6 +82,7 @@ public class TransferService {
         this.fraudAlertHitRepository = fraudAlertHitRepository;
         this.systemSettingRepository = systemSettingRepository;
         this.notificationService = notificationService;
+        this.emailService = emailService;
         this.auditService = auditService;
         this.referenceGenerator = referenceGenerator;
         this.transactionTemplate = transactionTemplate;
@@ -368,6 +372,13 @@ public class TransferService {
                                 request.getAmount().toPlainString(), referenceId)
                 );
 
+                emailService.sendEmail(
+                        sender.getEmail(),
+                        "Security Alert: Transfer Under Review (Ref: " + referenceId + ")",
+                        String.format("Your transfer of ₹%s (Ref: %s) is undergoing standard security review. Funds are temporarily reserved.",
+                                request.getAmount().toPlainString(), referenceId)
+                );
+
                 auditService.logAction(
                         sender,
                         AuditAction.ALERT_OPENED,
@@ -410,6 +421,13 @@ public class TransferService {
                         NotificationType.TRANSFER_BLOCKED,
                         "Transfer Security Alert",
                         String.format("Your transfer of ₹%s (Ref: %s) could not be processed due to security rules. No funds were deducted.",
+                                request.getAmount().toPlainString(), referenceId)
+                );
+
+                emailService.sendEmail(
+                        sender.getEmail(),
+                        "Security Alert: Transfer Blocked (Ref: " + referenceId + ")",
+                        String.format("Your transfer of ₹%s (Ref: %s) could not be processed due to automated security controls. No funds were deducted.",
                                 request.getAmount().toPlainString(), referenceId)
                 );
 
