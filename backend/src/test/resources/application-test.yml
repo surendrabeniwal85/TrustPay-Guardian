@@ -4,8 +4,33 @@ server:
 spring:
   application:
     name: trustpay-guardian-backend-test
+  datasource:
+    url: jdbc:h2:mem:trustpay_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DEFAULT_LOCK_TIMEOUT=15000
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 30000
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
 
 app:
+  simulation-mode: true
   security:
+    jwt:
+      secret: TrustPayGuardianSecureTestJwtSecretKeyMustBeAtLeast32BytesLongForHS256Algorithm!
+      expiration-ms: 900000
+      refresh-expiration-ms: 604800000
     cors:
       allowed-origin: http://localhost:5173

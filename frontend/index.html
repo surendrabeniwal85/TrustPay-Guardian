@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TrustPay Guardian: Fraud-Aware Digital Banking Platform</title>
     <meta name="description" content="Educational, portfolio-grade digital banking simulation with explainable fraud-risk management." />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('tpg-theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = saved || (prefersDark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-bs-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

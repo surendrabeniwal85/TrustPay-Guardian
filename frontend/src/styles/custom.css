@@ -1,0 +1,115 @@
+/* ==========================================================================
+   TrustPay Guardian - Custom Styles & Micro-Animations (custom.css)
+   ========================================================================== */
+
+/* Glassmorphism Navbar */
+.tpg-glass-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--tpg-navbar-bg);
+  border-bottom: 1px solid var(--tpg-border-color);
+  transition: background-color var(--tpg-transition-normal), border-color var(--tpg-transition-normal);
+}
+
+/* Card Styling */
+.tpg-card {
+  background-color: var(--tpg-bg-card);
+  border: 1px solid var(--tpg-border-color);
+  border-radius: var(--tpg-radius-lg);
+  box-shadow: var(--tpg-shadow-sm);
+  transition: transform var(--tpg-transition-normal), box-shadow var(--tpg-transition-normal), border-color var(--tpg-transition-normal);
+}
+
+.tpg-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--tpg-card-hover-border);
+  box-shadow: var(--tpg-shadow-md);
+}
+
+/* Severity Badges */
+.badge-risk-low {
+  background-color: var(--tpg-risk-low-bg) !important;
+  color: var(--tpg-risk-low) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-weight: 600;
+}
+
+.badge-risk-medium {
+  background-color: var(--tpg-risk-medium-bg) !important;
+  color: var(--tpg-risk-medium) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-weight: 600;
+}
+
+.badge-risk-high {
+  background-color: var(--tpg-risk-high-bg) !important;
+  color: var(--tpg-risk-high) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-weight: 600;
+}
+
+.badge-risk-critical {
+  background-color: var(--tpg-risk-critical-bg) !important;
+  color: var(--tpg-risk-critical) !important;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  font-weight: 700;
+}
+
+/* App Shell Layout */
+.tpg-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.tpg-sidebar {
+  width: 260px;
+  background-color: var(--tpg-sidebar-bg);
+  border-right: 1px solid var(--tpg-border-color);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--tpg-transition-normal);
+}
+
+.tpg-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--tpg-bg-surface);
+}
+
+/* Form Styles */
+.form-control:focus, .form-select:focus {
+  border-color: var(--tpg-primary);
+  box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25);
+}
+
+/* Password Strength Meter */
+.password-meter-bar {
+  height: 4px;
+  border-radius: var(--tpg-radius-full);
+  transition: width var(--tpg-transition-normal), background-color var(--tpg-transition-normal);
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+  .tpg-sidebar {
+    position: fixed;
+    z-index: 1040;
+    height: 100vh;
+    transform: translateX(-100%);
+  }
+  .tpg-sidebar.open {
+    transform: translateX(0);
+  }
+}

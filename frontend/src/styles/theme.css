@@ -1,0 +1,37 @@
+/* ==========================================================================
+   TrustPay Guardian - Theme Overrides (theme.css)
+   ========================================================================== */
+
+[data-bs-theme="dark"] {
+  --tpg-bg-surface: #0f172a;
+  --tpg-bg-card: #1e293b;
+  --tpg-bg-subtle: #334155;
+  --tpg-border-color: #334155;
+  --tpg-border-subtle: #1e293b;
+  --tpg-text-primary: #f8fafc;
+  --tpg-text-secondary: #94a3b8;
+  --tpg-text-muted: #64748b;
+  --tpg-card-hover-border: #3b82f6;
+  --tpg-sidebar-bg: #090d16;
+  --tpg-navbar-bg: rgba(15, 23, 42, 0.85);
+
+  background-color: var(--tpg-bg-surface);
+  color: var(--tpg-text-primary);
+}
+
+[data-bs-theme="light"] {
+  --tpg-bg-surface: #f8fafc;
+  --tpg-bg-card: #ffffff;
+  --tpg-bg-subtle: #f1f5f9;
+  --tpg-border-color: #e2e8f0;
+  --tpg-border-subtle: #cbd5e1;
+  --tpg-text-primary: #0f172a;
+  --tpg-text-secondary: #475569;
+  --tpg-text-muted: #94a3b8;
+  --tpg-card-hover-border: #2563eb;
+  --tpg-sidebar-bg: #ffffff;
+  --tpg-navbar-bg: rgba(255, 255, 255, 0.9);
+
+  background-color: var(--tpg-bg-surface);
+  color: var(--tpg-text-primary);
+}

@@ -1,0 +1,58 @@
+/* ==========================================================================
+   TrustPay Guardian - Design Tokens (variables.css)
+   ========================================================================== */
+
+:root {
+  /* Brand Palettes */
+  --tpg-primary: #2563eb;
+  --tpg-primary-hover: #1d4ed8;
+  --tpg-primary-subtle: #dbeafe;
+  --tpg-secondary: #0ea5e9;
+  --tpg-accent: #6366f1;
+
+  /* Risk Severity Semantic Colors */
+  --tpg-risk-low: #10b981;
+  --tpg-risk-low-bg: rgba(16, 185, 129, 0.12);
+  --tpg-risk-medium: #f59e0b;
+  --tpg-risk-medium-bg: rgba(245, 158, 11, 0.12);
+  --tpg-risk-high: #ef4444;
+  --tpg-risk-high-bg: rgba(239, 68, 68, 0.12);
+  --tpg-risk-critical: #dc2626;
+  --tpg-risk-critical-bg: rgba(220, 38, 38, 0.18);
+
+  /* Functional Status */
+  --tpg-success: #10b981;
+  --tpg-warning: #f59e0b;
+  --tpg-danger: #ef4444;
+  --tpg-info: #0ea5e9;
+
+  /* Spacing Scale */
+  --tpg-space-1: 0.25rem;
+  --tpg-space-2: 0.5rem;
+  --tpg-space-3: 0.75rem;
+  --tpg-space-4: 1rem;
+  --tpg-space-5: 1.25rem;
+  --tpg-space-6: 1.5rem;
+  --tpg-space-8: 2rem;
+  --tpg-space-10: 2.5rem;
+  --tpg-space-12: 3rem;
+
+  /* Radius */
+  --tpg-radius-sm: 0.375rem;
+  --tpg-radius-md: 0.5rem;
+  --tpg-radius-lg: 0.75rem;
+  --tpg-radius-xl: 1rem;
+  --tpg-radius-full: 9999px;
+
+  /* Shadows */
+  --tpg-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --tpg-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --tpg-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --tpg-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --tpg-shadow-glow: 0 0 20px rgba(37, 99, 235, 0.35);
+
+  /* Transitions */
+  --tpg-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --tpg-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --tpg-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}

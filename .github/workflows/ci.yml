@@ -6,9 +6,13 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  backend-build:
-    name: Backend Build & Test (Java 25)
+  backend-verify:
+    name: Backend Build, Test & Coverage (Java 25)
     runs-on: ubuntu-latest
 
     steps:
@@ -22,12 +26,28 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build and Verify with Maven
         working-directory: backend
-        run: mvn -B clean verify
+        run: ./mvnw clean verify -B
 
-  frontend-build:
-    name: Frontend Build & Lint (Node 24)
+      - name: Archive Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/*.xml
+          if-no-files-found: ignore
+
+      - name: Archive JaCoCo Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          if-no-files-found: ignore
+
+  frontend-verify:
+    name: Frontend Lint, Test & Build (Node 24)
     runs-on: ubuntu-latest
 
     steps:
@@ -45,6 +65,33 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run Build
+      - name: Lint and Typecheck
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run Vitest Unit & Component Tests
+        working-directory: frontend
+        run: npm test -- --run
+
+      - name: Build Web Application Bundle
         working-directory: frontend
         run: npm run build
+
+  docker-validate:
+    name: Docker & Compose Syntax Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration (Dev)
+        run: docker compose config
+
+      - name: Validate Docker Compose Configuration (Prod)
+        env:
+          MYSQL_ROOT_PASSWORD: ci_dummy_password
+          MYSQL_USER: ci_dummy_user
+          MYSQL_PASSWORD: ci_dummy_password
+          APP_SECURITY_JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+        run: docker compose -f compose.prod.yml config
