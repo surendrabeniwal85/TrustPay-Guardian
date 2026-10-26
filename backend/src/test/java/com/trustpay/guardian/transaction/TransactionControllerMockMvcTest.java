@@ -277,4 +277,34 @@ class TransactionControllerMockMvcTest {
                         .header("Authorization", "Bearer " + malloryToken))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("POST /api/v1/transfers initiates transfer and GET /api/v1/transfers/account/{id} returns account transactions")
+    void testDirectTransfersEndpoints() throws Exception {
+        User user1 = userRepository.save(new User("T Cust 1", "tcust1@example.com", "9811111191", "hash", Role.CUSTOMER));
+        User user2 = userRepository.save(new User("T Cust 2", "tcust2@example.com", "9811111192", "hash", Role.CUSTOMER));
+
+        Account acc1 = accountRepository.save(new Account(user1, "TPG_T1_001", AccountType.SAVINGS, new BigDecimal("10000.00"), new BigDecimal("50000.00")));
+        Account acc2 = accountRepository.save(new Account(user2, "TPG_T2_001", AccountType.SAVINGS, new BigDecimal("2000.00"), new BigDecimal("50000.00")));
+
+        String token1 = jwtService.generateAccessToken(com.trustpay.guardian.security.UserPrincipal.create(user1));
+
+        TransferRequest req = new TransferRequest(acc1.getId(), acc2.getAccountNumber(), new BigDecimal("500.00"), "Transfer test");
+
+        mockMvc.perform(post("/api/v1/transfers")
+                        .header("Authorization", "Bearer " + token1)
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data.status", is("APPROVED_SIMULATED")));
+
+        // Query transactions for account1
+        mockMvc.perform(get("/api/v1/transfers/account/" + acc1.getId())
+                        .header("Authorization", "Bearer " + token1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data").isArray());
+    }
 }

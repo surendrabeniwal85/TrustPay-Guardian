@@ -43,6 +43,10 @@ public class SystemSetting {
     public SystemSetting() {
     }
 
+    public SystemSetting(String settingKey, String settingValue, String description) {
+        this(settingKey, settingValue, description, null);
+    }
+
     public SystemSetting(String settingKey, String settingValue, String description, User updatedBy) {
         this.settingKey = settingKey;
         this.settingValue = settingValue;
