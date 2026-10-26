@@ -11,4 +11,7 @@ public interface FraudAlertHitRepository extends JpaRepository<FraudAlertHit, Lo
     List<FraudAlertHit> findByAlertId(Long alertId);
 
     List<FraudAlertHit> findByRuleCode(String ruleCode);
+
+    @org.springframework.data.jpa.repository.Query("SELECT h.ruleCode, COUNT(h) FROM FraudAlertHit h GROUP BY h.ruleCode")
+    List<Object[]> countGroupByRuleCode();
 }

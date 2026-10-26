@@ -191,4 +191,37 @@
   - Alert resolution strictly restricted to `FRAUD_ANALYST` role; `ADMIN` granted read-only visibility.
 - **Consequences:** Zero black-box obscurity, granular rule unit testability at threshold boundaries, and complete compliance auditability.
 
+---
+
+## ADR-019: Administrative Role Separation & Self-Action Guards
+- **Status:** APPROVED
+- **Context:** Administrative accounts possess elevated privileges that could inadvertently cause privilege escalation, accidental lockout, or segregation of duties violation.
+- **Decision:**
+  - Strict separation of duties: `ADMIN` has read-only access to fraud alert investigation queues and statistics, but is strictly prohibited (`HTTP 403`) from executing alert release or block decisions (`/api/v1/fraud/alerts/{id}/decision`, `/release`, `/confirm-block`), which are reserved solely for `FRAUD_ANALYST`.
+  - Self-action guards: Administrators are barred from demoting their own role (`HTTP 400 Bad Request`) or suspending/deactivating their own user account.
+  - Every administrative state mutation logs an append-only audit record in `audit_logs` capturing caller user ID, IP address, request ID, target entity, and before/after JSON states.
+- **Consequences:** Prevents self-inflicted lockouts, enforces least privilege, and ensures immutable accountability for administrative changes.
+
+---
+
+## ADR-020: Instant Account Freezing & Money Movement Enforcement
+- **Status:** APPROVED
+- **Context:** When an account is compromised or subject to regulatory compliance freeze, all outgoing and incoming debit transactions must halt immediately across all concurrent channels.
+- **Decision:**
+  - Admin freeze endpoint (`PATCH /api/v1/admin/accounts/{id}/freeze`) atomically updates account status to `FROZEN`, issues an in-app `ACCOUNT_FROZEN` notification, and writes an audit event.
+  - Money movement operations in `TransferService` execute pessimistic row locks (`SELECT ... FOR UPDATE`) ordered deterministically by account ID, followed immediately by post-lock account status verification. If either source or destination is `FROZEN`, execution immediately aborts with `AccountFrozenException` (HTTP 422 Unprocessable Entity) without modifying balances.
+  - Unfreezing restores `ACTIVE` status and issues an `ACCOUNT_UNFROZEN` notification.
+- **Consequences:** Eliminates race conditions during account suspension; guarantees zero funds escape a frozen account.
+
+---
+
+## ADR-021: Public Operational Counter Endpoint Data Sanitization
+- **Status:** APPROVED
+- **Context:** The public landing page requires dynamic system counters (completed transfers, total volume, active users, alerts analyzed) for unauthenticated visitors without exposing PII.
+- **Decision:**
+  - Expose `GET /api/v1/public/stats` with anonymous permitAll in `SecurityConfig`.
+  - Delivers only aggregate numeric counts and sums (`totalTransfers`, `totalVolume`, `totalUsers`, `alertsAnalyzed`).
+  - Strict schema guard: Response payload is validated to contain zero user identity keys (names, emails, account numbers, or IP addresses).
+- **Consequences:** Delivers engaging real-time landing page counters while maintaining absolute privacy and security compliance.
+
 

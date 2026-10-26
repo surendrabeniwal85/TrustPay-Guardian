@@ -38,4 +38,7 @@ public interface FraudAlertRepository extends JpaRepository<FraudAlert, Long> {
             @Param("maxScore") Integer maxScore,
             Pageable pageable
     );
+
+    @Query("SELECT a.status, COUNT(a) FROM FraudAlert a GROUP BY a.status")
+    List<Object[]> countGroupByStatus();
 }

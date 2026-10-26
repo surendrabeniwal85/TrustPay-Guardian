@@ -57,6 +57,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     long countByStatus(TransactionStatus status);
 
+    @Query("SELECT COALESCE(SUM(t.amount), 0.00) FROM Transaction t WHERE t.status = 'APPROVED_SIMULATED'")
+    BigDecimal sumCompletedVolume();
+
     @Query("SELECT t FROM Transaction t WHERE (t.sourceAccount.user.id = :userId OR t.destinationAccount.user.id = :userId) " +
            "AND (:type IS NULL OR t.type = :type) " +
            "AND (:status IS NULL OR t.status = :status) " +
@@ -95,5 +98,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("maxAmount") BigDecimal maxAmount,
             @Param("search") String search,
             Pageable pageable);
+
+    @Query("SELECT t.createdAt FROM Transaction t WHERE t.createdAt >= :since")
+    List<Instant> findCreatedAtSince(@Param("since") Instant since);
 }
 
