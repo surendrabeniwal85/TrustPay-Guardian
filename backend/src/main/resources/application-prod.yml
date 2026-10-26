@@ -1,0 +1,91 @@
+# Production profile configuration
+# Enforces strict security, externalized credentials, and container performance tuning
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:2}
+      connection-timeout: ${HIKARI_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${HIKARI_IDLE_TIMEOUT:600000}
+      max-lifetime: ${HIKARI_MAX_LIFETIME:1800000}
+      pool-name: TrustPayGuardianHikariPool
+
+  flyway:
+    enabled: true
+    user: ${FLYWAY_USER:${SPRING_DATASOURCE_USERNAME}}
+    password: ${FLYWAY_PASSWORD:${SPRING_DATASOURCE_PASSWORD}}
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: UTC
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+# Actuator: internal monitoring only in prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+# OpenAPI: disabled or locked down in prod
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+
+app:
+  name: "TrustPay Guardian: Fraud-Aware Digital Banking Platform"
+  simulation-mode: false
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration-ms: ${JWT_EXPIRATION_MS:900000}
+      refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+    cookie:
+      secure: ${COOKIE_SECURE:true}
+      same-site: Strict
+    cors:
+      allowed-origin: ${FRONTEND_ORIGIN:https://guardian.trustpay.internal}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.trustpay.guardian: ${LOG_LEVEL_APP:INFO}
