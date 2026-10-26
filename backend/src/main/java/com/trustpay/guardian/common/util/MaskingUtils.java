@@ -50,4 +50,24 @@ public final class MaskingUtils {
         String suffix = clean.substring(clean.length() - 4);
         return "*".repeat(clean.length() - 4) + suffix;
     }
+
+    public static String maskName(String name) {
+        if (!StringUtils.hasText(name)) {
+            return "***";
+        }
+        String[] words = name.trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (word.length() <= 1) {
+                sb.append(word);
+            } else {
+                sb.append(word.charAt(0)).append("*".repeat(word.length() - 1));
+            }
+            if (i < words.length - 1) {
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
+    }
 }
