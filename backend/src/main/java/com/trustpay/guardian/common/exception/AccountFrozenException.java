@@ -1,14 +1,13 @@
 package com.trustpay.guardian.common.exception;
 
-import org.springframework.http.HttpStatus;
-
-public class AccountFrozenException extends ApiException {
+public class AccountFrozenException extends BusinessRuleException {
 
     public AccountFrozenException(String accountNumber) {
-        super(String.format("Account '%s' is FROZEN. Outgoing debit transfers are restricted.", accountNumber), HttpStatus.FORBIDDEN);
+        super(String.format("Account '%s' is FROZEN. Outgoing debit and incoming transfers are restricted.", accountNumber));
     }
 
-    public AccountFrozenException(String message, HttpStatus status) {
-        super(message, status);
+    public AccountFrozenException(String message, Throwable cause) {
+        super(message);
     }
 }
+
