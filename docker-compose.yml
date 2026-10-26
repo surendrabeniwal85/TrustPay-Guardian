@@ -1,0 +1,106 @@
+# ==============================================================================
+# TrustPay Guardian — Complete Docker Compose Stack
+# Alias of compose.yaml for backward compatibility with docker-compose CLI
+# ==============================================================================
+
+services:
+  mysql:
+    image: mysql:9.7.0
+    container_name: trustpay-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-trustpay_guardian}
+      MYSQL_USER: ${MYSQL_USER:-trustpay_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-trustpay_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - trustpay-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: trustpay-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # Simulated SMTP port
+      - "8025:8025" # MailHog Web Inbox UI
+    networks:
+      - trustpay-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8025/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trustpay-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailhog:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-trustpay_guardian}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-trustpay_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-trustpay_password}
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+      APP_SECURITY_JWT_SECRET: ${APP_SECURITY_JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      DEV_SEED_PASSWORD: ${DEV_SEED_PASSWORD:-Password123!}
+      LOGGING_LEVEL_COM_TRUSTPAY_GUARDIAN: INFO
+    ports:
+      - "8080:8080"
+    networks:
+      - trustpay-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 35s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trustpay-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "3000:80"
+    networks:
+      - trustpay-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  trustpay-network:
+    driver: bridge
+    name: trustpay-network
+
+volumes:
+  mysql_data:
+    driver: local
+    name: trustpay_mysql_data
