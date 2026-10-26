@@ -24,5 +24,9 @@ spring:
 app:
   simulation-mode: true
   security:
+    jwt:
+      secret: TrustPayGuardianSecureTestJwtSecretKeyMustBeAtLeast32BytesLongForHS256Algorithm!
+      expiration-ms: 900000
+      refresh-expiration-ms: 604800000
     cors:
       allowed-origin: http://localhost:5173
