@@ -52,6 +52,14 @@ class TransferServiceIntegrationTest {
     @Autowired
     private FraudAlertRepository fraudAlertRepository;
 
+    @Autowired
+    private com.trustpay.guardian.fraud.FraudRuleConfigService fraudRuleConfigService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        fraudRuleConfigService.clearCache();
+    }
+
     @Test
     @DisplayName("Normal transfer between accounts updates balances atomically with APPROVED_SIMULATED status")
     void normalTransferSucceeds() {
