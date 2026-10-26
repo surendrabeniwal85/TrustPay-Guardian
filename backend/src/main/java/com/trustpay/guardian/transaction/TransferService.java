@@ -364,8 +364,8 @@ public class TransferService {
                         sender,
                         NotificationType.TRANSFER_HELD,
                         "Transfer Held for Security Review",
-                        String.format("Your transfer of ₹%s (Ref: %s) triggered fraud risk checks (Score: %d/100) and is under review by our fraud analysis team. Funds are temporarily reserved.",
-                                request.getAmount().toPlainString(), referenceId, evaluation.getTotalRiskScore())
+                        String.format("Your transfer of ₹%s (Ref: %s) is undergoing standard security review. Funds are temporarily reserved.",
+                                request.getAmount().toPlainString(), referenceId)
                 );
 
                 auditService.logAction(
@@ -383,18 +383,16 @@ public class TransferService {
 
             } else {
                 // BLOCKED
-                tx.setFailureReason(String.format("Automatically blocked by TrustPay Guardian Risk Engine (Score: %d/100, High Risk)", evaluation.getTotalRiskScore()));
+                tx.setFailureReason("Transfer blocked by automated security controls.");
                 Transaction savedTx = transactionRepository.save(tx);
 
-                // Create blocked fraud alert
+                // Create high-risk open fraud alert
                 FraudAlert alert = new FraudAlert(
                         savedTx,
                         evaluation.getTotalRiskScore(),
                         evaluation.getRiskLevel(),
-                        AlertStatus.RESOLVED_BLOCKED
+                        AlertStatus.OPEN
                 );
-                alert.setResolvedAt(now);
-                alert.setDecisionNotes("Automatically blocked by deterministic rule engine exceeding block threshold.");
                 FraudAlert savedAlert = fraudAlertRepository.save(alert);
 
                 for (FraudRuleHitResult hit : evaluation.getHits()) {
@@ -410,9 +408,9 @@ public class TransferService {
                 notificationService.sendNotification(
                         sender,
                         NotificationType.TRANSFER_BLOCKED,
-                        "Transfer Automatically Blocked",
-                        String.format("Your transfer of ₹%s (Ref: %s) was blocked due to critical risk factors (Score: %d/100). No funds were deducted.",
-                                request.getAmount().toPlainString(), referenceId, evaluation.getTotalRiskScore())
+                        "Transfer Security Alert",
+                        String.format("Your transfer of ₹%s (Ref: %s) could not be processed due to security rules. No funds were deducted.",
+                                request.getAmount().toPlainString(), referenceId)
                 );
 
                 auditService.logAction(

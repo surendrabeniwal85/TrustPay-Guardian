@@ -1,5 +1,6 @@
 package com.trustpay.guardian.fraud;
 
+import com.trustpay.guardian.fraud.engine.RuleHit;
 import com.trustpay.guardian.transaction.TransactionStatus;
 
 import java.util.Collections;
@@ -10,15 +11,15 @@ public class RiskDecision {
     private final int totalRiskScore;
     private final RiskLevel riskLevel;
     private final TransactionStatus proposedStatus;
-    private final List<FraudRuleHitResult> hits;
+    private final List<RuleHit> ruleHits;
     private final String summary;
 
     public RiskDecision(int totalRiskScore, RiskLevel riskLevel, TransactionStatus proposedStatus,
-                        List<FraudRuleHitResult> hits, String summary) {
+                        List<RuleHit> ruleHits, String summary) {
         this.totalRiskScore = totalRiskScore;
         this.riskLevel = riskLevel;
         this.proposedStatus = proposedStatus;
-        this.hits = hits != null ? hits : Collections.emptyList();
+        this.ruleHits = ruleHits != null ? ruleHits : Collections.emptyList();
         this.summary = summary;
     }
 
@@ -39,8 +40,17 @@ public class RiskDecision {
         return proposedStatus;
     }
 
+    public List<RuleHit> getRuleHits() {
+        return ruleHits;
+    }
+
+    /**
+     * Compatibility bridge for existing callers.
+     */
     public List<FraudRuleHitResult> getHits() {
-        return hits;
+        return ruleHits.stream()
+                .map(rh -> FraudRuleHitResult.hit(rh.ruleCode(), rh.points(), rh.explanation()))
+                .toList();
     }
 
     public String getSummary() {
