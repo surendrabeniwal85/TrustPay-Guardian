@@ -224,4 +224,17 @@
   - Strict schema guard: Response payload is validated to contain zero user identity keys (names, emails, account numbers, or IP addresses).
 - **Consequences:** Delivers engaging real-time landing page counters while maintaining absolute privacy and security compliance.
 
+---
+
+## ADR-022: Client-Side Token Architecture — In-Memory Access Tokens & HttpOnly Refresh
+- **Status:** APPROVED
+- **Context:** Storing JWT access tokens in browser `localStorage` or `sessionStorage` exposes tokens to extraction via Cross-Site Scripting (XSS) attacks. Conversely, storing access tokens purely in cookies makes REST APIs vulnerable to Cross-Site Request Forgery (CSRF).
+- **Decision:**
+  - JWT Access Tokens (15-minute lifespan) are stored exclusively in JavaScript runtime memory (`axiosClient.ts`). Zero tokens are ever persisted to `localStorage` or `sessionStorage`.
+  - JWT Refresh Tokens (7-day lifespan) are delivered and transmitted exclusively via `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth` cookies.
+  - On application mount or 401 Unauthorized response, `axiosClient` executes a single silent refresh request (`POST /api/v1/auth/refresh`), automatically updating the in-memory token and retrying pending requests.
+  - User logout clears the in-memory token and invalidates the refresh token server-side with a cleared cookie.
+- **Consequences:** Closes XSS token theft vectors, eliminates CSRF vulnerability on bearer endpoints, and provides seamless user experience via silent refresh.
+
+
 
