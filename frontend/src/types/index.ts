@@ -99,6 +99,15 @@ export interface FraudAlert {
   hits?: FraudAlertHit[];
 }
 
+export interface FraudStats {
+  totalAlerts: number;
+  openAlerts: number;
+  inReviewAlerts: number;
+  resolvedReleased: number;
+  resolvedBlocked: number;
+  averageRiskScore: number;
+}
+
 export interface FraudRule {
   id: number;
   ruleCode: string;
