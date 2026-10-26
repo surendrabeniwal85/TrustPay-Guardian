@@ -1,0 +1,100 @@
+# ==============================================================================
+# TrustPay Guardian — Production Docker Compose Specification
+# Profile: prod (No synthetic seeder, no MailHog, strict env-based secrets)
+# Command: docker compose -f compose.prod.yml up --build -d
+# ==============================================================================
+
+services:
+  mysql:
+    image: mysql:9.7.0
+    container_name: trustpay-mysql-prod
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Error: MYSQL_ROOT_PASSWORD must be provided in production}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-trustpay_guardian}
+      MYSQL_USER: ${MYSQL_USER:?Error: MYSQL_USER must be provided in production}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Error: MYSQL_PASSWORD must be provided in production}
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+    networks:
+      - trustpay-prod-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trustpay-backend-prod
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-trustpay_guardian}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_MAIL_HOST: ${SMTP_HOST:-smtp.sendgrid.net}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USERNAME:-apikey}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+      APP_SECURITY_JWT_SECRET: ${APP_SECURITY_JWT_SECRET:?Error: APP_SECURITY_JWT_SECRET must be set in production}
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info
+      SPRINGDOC_API_DOCS_ENABLED: "false"
+      SPRINGDOC_SWAGGER_UI_ENABLED: "false"
+    networks:
+      - trustpay-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trustpay-frontend-prod
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - trustpay-prod-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+networks:
+  trustpay-prod-network:
+    driver: bridge
+
+volumes:
+  mysql_prod_data:
+    driver: local
