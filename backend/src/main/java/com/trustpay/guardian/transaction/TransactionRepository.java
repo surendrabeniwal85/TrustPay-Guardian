@@ -23,10 +23,17 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Page<Transaction> findBySourceAccountIdOrDestinationAccountIdOrderByCreatedAtDesc(Long sourceAccountId, Long destinationAccountId, Pageable pageable);
 
-    @Query("SELECT t FROM Transaction t WHERE (t.sourceAccount.id = :accountId OR t.destinationAccount.id = :accountId) " +
+    @Query(value = "SELECT t FROM Transaction t " +
+           "LEFT JOIN FETCH t.sourceAccount sa LEFT JOIN FETCH sa.user " +
+           "LEFT JOIN FETCH t.destinationAccount da LEFT JOIN FETCH da.user " +
+           "WHERE (t.sourceAccount.id = :accountId OR t.destinationAccount.id = :accountId) " +
            "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
            "AND (:endDate IS NULL OR t.createdAt <= :endDate) " +
-           "ORDER BY t.createdAt DESC")
+           "ORDER BY t.createdAt DESC",
+           countQuery = "SELECT COUNT(t) FROM Transaction t " +
+           "WHERE (t.sourceAccount.id = :accountId OR t.destinationAccount.id = :accountId) " +
+           "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
+           "AND (:endDate IS NULL OR t.createdAt <= :endDate)")
     Page<Transaction> findStatementByAccountIdAndDateRange(
             @Param("accountId") Long accountId,
             @Param("startDate") Instant startDate,
@@ -60,7 +67,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT COALESCE(SUM(t.amount), 0.00) FROM Transaction t WHERE t.status = 'APPROVED_SIMULATED'")
     BigDecimal sumCompletedVolume();
 
-    @Query("SELECT t FROM Transaction t WHERE (t.sourceAccount.user.id = :userId OR t.destinationAccount.user.id = :userId) " +
+    @Query(value = "SELECT t FROM Transaction t " +
+           "LEFT JOIN FETCH t.sourceAccount sa LEFT JOIN FETCH sa.user " +
+           "LEFT JOIN FETCH t.destinationAccount da LEFT JOIN FETCH da.user " +
+           "WHERE (t.sourceAccount.user.id = :userId OR t.destinationAccount.user.id = :userId) " +
            "AND (:type IS NULL OR t.type = :type) " +
            "AND (:status IS NULL OR t.status = :status) " +
            "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
@@ -68,7 +78,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
            "AND (:minAmount IS NULL OR t.amount >= :minAmount) " +
            "AND (:maxAmount IS NULL OR t.amount <= :maxAmount) " +
            "AND (:search IS NULL OR LOWER(t.referenceId) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY t.createdAt DESC")
+           "ORDER BY t.createdAt DESC",
+           countQuery = "SELECT COUNT(t) FROM Transaction t " +
+           "WHERE (t.sourceAccount.user.id = :userId OR t.destinationAccount.user.id = :userId) " +
+           "AND (:type IS NULL OR t.type = :type) " +
+           "AND (:status IS NULL OR t.status = :status) " +
+           "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
+           "AND (:endDate IS NULL OR t.createdAt <= :endDate) " +
+           "AND (:minAmount IS NULL OR t.amount >= :minAmount) " +
+           "AND (:maxAmount IS NULL OR t.amount <= :maxAmount) " +
+           "AND (:search IS NULL OR LOWER(t.referenceId) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Transaction> findFilteredTransactionsForUser(
             @Param("userId") Long userId,
             @Param("type") TransactionType type,
@@ -80,15 +99,25 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("search") String search,
             Pageable pageable);
 
-    @Query("SELECT t FROM Transaction t WHERE " +
-           "(:type IS NULL OR t.type = :type) " +
+    @Query(value = "SELECT t FROM Transaction t " +
+           "LEFT JOIN FETCH t.sourceAccount sa LEFT JOIN FETCH sa.user " +
+           "LEFT JOIN FETCH t.destinationAccount da LEFT JOIN FETCH da.user " +
+           "WHERE (:type IS NULL OR t.type = :type) " +
            "AND (:status IS NULL OR t.status = :status) " +
            "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
            "AND (:endDate IS NULL OR t.createdAt <= :endDate) " +
            "AND (:minAmount IS NULL OR t.amount >= :minAmount) " +
            "AND (:maxAmount IS NULL OR t.amount <= :maxAmount) " +
            "AND (:search IS NULL OR LOWER(t.referenceId) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY t.createdAt DESC")
+           "ORDER BY t.createdAt DESC",
+           countQuery = "SELECT COUNT(t) FROM Transaction t " +
+           "WHERE (:type IS NULL OR t.type = :type) " +
+           "AND (:status IS NULL OR t.status = :status) " +
+           "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
+           "AND (:endDate IS NULL OR t.createdAt <= :endDate) " +
+           "AND (:minAmount IS NULL OR t.amount >= :minAmount) " +
+           "AND (:maxAmount IS NULL OR t.amount <= :maxAmount) " +
+           "AND (:search IS NULL OR LOWER(t.referenceId) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Transaction> findAllFilteredTransactions(
             @Param("type") TransactionType type,
             @Param("status") TransactionStatus status,

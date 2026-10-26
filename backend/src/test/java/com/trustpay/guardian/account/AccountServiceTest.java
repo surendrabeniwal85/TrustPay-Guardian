@@ -133,4 +133,104 @@ class AccountServiceTest {
 
         assertThat(available).isEqualByComparingTo("6500.00");
     }
+
+    @Test
+    @DisplayName("Deposit succeeds when account is active and within limit")
+    void depositSucceeds() {
+        User user = new User("User", "u@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Account account = new Account(user, "TPG1000000000", AccountType.SAVINGS, new BigDecimal("5000.00"), new BigDecimal("50000.00"));
+        account.setId(50L);
+
+        when(accountRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(account));
+        when(systemSettingRepository.findBySettingKey("MAX_DEPOSIT_AMOUNT"))
+                .thenReturn(Optional.of(new SystemSetting("MAX_DEPOSIT_AMOUNT", "50000.00", "Max deposit")));
+
+        com.trustpay.guardian.account.dto.DepositRequest req =
+                new com.trustpay.guardian.account.dto.DepositRequest(50L, new BigDecimal("10000.00"));
+
+        AccountResponse resp = accountService.deposit(req, 1L, "127.0.0.1", "REQ-DEP-01");
+
+        assertThat(resp).isNotNull();
+        assertThat(resp.getBalance()).isEqualByComparingTo("15000.00");
+        verify(accountRepository).save(account);
+        verify(transactionRepository).save(any());
+        verify(notificationService).sendNotification(eq(user), eq(com.trustpay.guardian.notification.NotificationType.TRANSFER_RECEIVED), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Deposit fails if amount exceeds MAX_DEPOSIT_AMOUNT")
+    void depositFailsWhenExceedsLimit() {
+        User user = new User("User", "u@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Account account = new Account(user, "TPG1000000000", AccountType.SAVINGS, new BigDecimal("5000.00"), new BigDecimal("50000.00"));
+        account.setId(50L);
+
+        when(accountRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(account));
+        when(systemSettingRepository.findBySettingKey("MAX_DEPOSIT_AMOUNT"))
+                .thenReturn(Optional.of(new SystemSetting("MAX_DEPOSIT_AMOUNT", "50000.00", "Max deposit")));
+
+        com.trustpay.guardian.account.dto.DepositRequest req =
+                new com.trustpay.guardian.account.dto.DepositRequest(50L, new BigDecimal("50001.00"));
+
+        assertThatThrownBy(() -> accountService.deposit(req, 1L, "127.0.0.1", "REQ-DEP-02"))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("exceeds maximum allowable single deposit");
+    }
+
+    @Test
+    @DisplayName("Deposit fails if account is FROZEN or CLOSED")
+    void depositFailsOnRestrictedAccount() {
+        User user = new User("User", "u@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Account frozenAccount = new Account(user, "TPG1000000000", AccountType.SAVINGS, new BigDecimal("5000.00"), new BigDecimal("50000.00"));
+        frozenAccount.setId(50L);
+        frozenAccount.setStatus(AccountStatus.FROZEN);
+
+        when(accountRepository.findByIdForUpdate(50L)).thenReturn(Optional.of(frozenAccount));
+
+        com.trustpay.guardian.account.dto.DepositRequest req =
+                new com.trustpay.guardian.account.dto.DepositRequest(50L, new BigDecimal("100.00"));
+
+        assertThatThrownBy(() -> accountService.deposit(req, 1L, "127.0.0.1", "REQ-DEP-03"))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("frozen account");
+    }
+
+    @Test
+    @DisplayName("Statement query for account succeeds with ownership check")
+    void getAccountStatementSucceeds() {
+        User user = new User("User", "u@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Account account = new Account(user, "TPG1000000000", AccountType.SAVINGS, new BigDecimal("5000.00"), new BigDecimal("50000.00"));
+        account.setId(50L);
+
+        when(accountRepository.findById(50L)).thenReturn(Optional.of(account));
+        when(transactionRepository.findStatementByAccountIdAndDateRange(eq(50L), any(), any(), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+
+        var statement = accountService.getAccountStatement(50L, 1L, null, null, org.springframework.data.domain.PageRequest.of(0, 10));
+        assertThat(statement).isNotNull();
+    }
+
+    @Test
+    @DisplayName("createDefaultAccount provisions savings account with settings parameters")
+    void createDefaultAccountProvisionsAccount() {
+        User user = new User("User", "u@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+
+        when(systemSettingRepository.findBySettingKey("DEMO_OPENING_BALANCE"))
+                .thenReturn(Optional.of(new SystemSetting("DEMO_OPENING_BALANCE", "15000.00", "Opening balance")));
+        when(systemSettingRepository.findBySettingKey("DEFAULT_DAILY_LIMIT"))
+                .thenReturn(Optional.of(new SystemSetting("DEFAULT_DAILY_LIMIT", "75000.00", "Daily limit")));
+        when(accountNumberGenerator.generateAccountNumber()).thenReturn("TPG9988776655");
+        when(accountRepository.save(any(Account.class))).thenAnswer(i -> i.getArgument(0));
+
+        Account created = accountService.createDefaultAccount(user);
+
+        assertThat(created).isNotNull();
+        assertThat(created.getBalance()).isEqualByComparingTo("15000.00");
+        assertThat(created.getDailyLimit()).isEqualByComparingTo("75000.00");
+        assertThat(created.getAccountNumber()).isEqualTo("TPG9988776655");
+    }
 }

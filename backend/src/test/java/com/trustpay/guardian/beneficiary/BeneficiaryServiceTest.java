@@ -130,4 +130,84 @@ class BeneficiaryServiceTest {
 
         verify(beneficiaryRepository, never()).delete(any());
     }
+
+    @Test
+    @DisplayName("Lookup with null or blank account number throws BusinessRuleException")
+    void lookupWithBlankThrowsException() {
+        assertThatThrownBy(() -> beneficiaryService.lookup(null))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("Account number is required for lookup");
+
+        assertThatThrownBy(() -> beneficiaryService.lookup("   "))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("Account number is required for lookup");
+    }
+
+    @Test
+    @DisplayName("Successfully add beneficiary")
+    void addBeneficiarySuccess() {
+        User user = new User("John", "john@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+
+        User recipient = new User("Jane", "jane@example.com", "9876543211", "hash", Role.CUSTOMER);
+        recipient.setId(2L);
+
+        Account recipientAccount = new Account(recipient, "TPG1000000002", AccountType.SAVINGS, BigDecimal.TEN, BigDecimal.TEN);
+        recipientAccount.setId(20L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(accountRepository.findByAccountNumber("TPG1000000002")).thenReturn(Optional.of(recipientAccount));
+        when(beneficiaryRepository.findByUserIdAndRecipientAccountId(1L, 20L)).thenReturn(Optional.empty());
+
+        Beneficiary beneficiary = new Beneficiary(user, recipientAccount, "Jane Smith");
+        beneficiary.setId(50L);
+        when(beneficiaryRepository.save(any(Beneficiary.class))).thenReturn(beneficiary);
+
+        BeneficiaryRequest request = new BeneficiaryRequest("TPG1000000002", "Jane Smith");
+        BeneficiaryResponse response = beneficiaryService.addBeneficiary(request, 1L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getNickname()).isEqualTo("Jane Smith");
+        verify(beneficiaryRepository, times(1)).save(any(Beneficiary.class));
+    }
+
+    @Test
+    @DisplayName("Get user beneficiaries returns list")
+    void getUserBeneficiariesReturnsList() {
+        User user = new User("John", "john@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Account recipientAccount = new Account(user, "TPG1000000002", AccountType.SAVINGS, BigDecimal.TEN, BigDecimal.TEN);
+        Beneficiary b = new Beneficiary(user, recipientAccount, "Nick");
+        b.setId(10L);
+
+        when(beneficiaryRepository.findByUserId(1L)).thenReturn(java.util.List.of(b));
+
+        var list = beneficiaryService.getUserBeneficiaries(1L);
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).getNickname()).isEqualTo("Nick");
+    }
+
+    @Test
+    @DisplayName("Delete beneficiary success")
+    void deleteBeneficiarySuccess() {
+        User user = new User("John", "john@example.com", "9876543210", "hash", Role.CUSTOMER);
+        user.setId(1L);
+        Beneficiary b = new Beneficiary(user, new Account(), "Nick");
+        b.setId(10L);
+
+        when(beneficiaryRepository.findById(10L)).thenReturn(Optional.of(b));
+
+        beneficiaryService.deleteBeneficiary(10L, 1L);
+        verify(beneficiaryRepository, times(1)).delete(b);
+    }
+
+    @Test
+    @DisplayName("Delete beneficiary when not found throws NotFoundException")
+    void deleteBeneficiaryNotFoundThrows() {
+        when(beneficiaryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> beneficiaryService.deleteBeneficiary(999L, 1L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Beneficiary not found with id: 999");
+    }
 }

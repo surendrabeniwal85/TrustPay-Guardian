@@ -9,7 +9,11 @@ import java.util.Optional;
 @Repository
 public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
 
-    List<Beneficiary> findByUserId(Long userId);
+    @org.springframework.data.jpa.repository.Query("SELECT b FROM Beneficiary b " +
+           "JOIN FETCH b.recipientAccount ra " +
+           "JOIN FETCH ra.user u " +
+           "WHERE b.user.id = :userId")
+    List<Beneficiary> findByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
     Optional<Beneficiary> findByUserIdAndRecipientAccountId(Long userId, Long recipientAccountId);
 

@@ -26,8 +26,21 @@ public interface FraudAlertRepository extends JpaRepository<FraudAlert, Long> {
     @Query("SELECT COALESCE(AVG(a.riskScore), 0.0) FROM FraudAlert a")
     Double findAverageRiskScore();
 
-    @Query("""
+    @Query(value = """
         SELECT a FROM FraudAlert a
+        LEFT JOIN FETCH a.transaction t
+        LEFT JOIN FETCH t.sourceAccount sa
+        LEFT JOIN FETCH sa.user
+        LEFT JOIN FETCH t.destinationAccount da
+        LEFT JOIN FETCH da.user
+        LEFT JOIN FETCH a.assignedTo
+        WHERE (:status IS NULL OR a.status = :status)
+          AND (:minScore IS NULL OR a.riskScore >= :minScore)
+          AND (:maxScore IS NULL OR a.riskScore <= :maxScore)
+        ORDER BY a.createdAt DESC
+        """,
+        countQuery = """
+        SELECT COUNT(a) FROM FraudAlert a
         WHERE (:status IS NULL OR a.status = :status)
           AND (:minScore IS NULL OR a.riskScore >= :minScore)
           AND (:maxScore IS NULL OR a.riskScore <= :maxScore)
