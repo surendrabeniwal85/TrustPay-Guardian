@@ -1,12 +1,11 @@
 # ==============================================================================
-# TrustPay Guardian — Optional Docker Compose Specification
-# Local native Windows development is the primary mode.
-# This compose file is provided for optional containerized environments.
+# TrustPay Guardian — Local Docker Compose Specification
+# Includes MySQL (LTS) and MailHog for development and simulation testing
 # ==============================================================================
 
 services:
   mysql:
-    image: mysql:8.4.11
+    image: mysql:9.7.0
     container_name: trustpay-mysql
     restart: unless-stopped
     environment:
@@ -23,6 +22,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: trustpay-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8025/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
   mysql_data:
