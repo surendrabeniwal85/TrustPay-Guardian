@@ -10,7 +10,13 @@ import { useAuth } from '../context/AuthContext';
 const LandingPage = lazy(() => import('../pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
-const CustomerDashboard = lazy(() => import('../pages/CustomerDashboard').then((m) => ({ default: m.CustomerDashboard })));
+const CustomerDashboard = lazy(() => import('../pages/customer/CustomerDashboardPage').then((m) => ({ default: m.CustomerDashboardPage })));
+const AccountsPage = lazy(() => import('../pages/customer/AccountsPage').then((m) => ({ default: m.AccountsPage })));
+const TransferPage = lazy(() => import('../pages/customer/TransferPage').then((m) => ({ default: m.TransferPage })));
+const BeneficiariesPage = lazy(() => import('../pages/customer/BeneficiariesPage').then((m) => ({ default: m.BeneficiariesPage })));
+const TransactionsPage = lazy(() => import('../pages/customer/TransactionsPage').then((m) => ({ default: m.TransactionsPage })));
+const NotificationsPage = lazy(() => import('../pages/customer/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+const ProfileSettingsPage = lazy(() => import('../pages/customer/ProfileSettingsPage').then((m) => ({ default: m.ProfileSettingsPage })));
 const AnalystDashboard = lazy(() => import('../pages/AnalystDashboard').then((m) => ({ default: m.AnalystDashboard })));
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
 const ForbiddenPage = lazy(() => import('../pages/errors/ForbiddenPage').then((m) => ({ default: m.ForbiddenPage })));
@@ -63,10 +69,12 @@ export const AppRoutes: React.FC = () => {
         >
           <Route index element={<Navigate to="/app/dashboard" replace />} />
           <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="accounts" element={<CustomerDashboard />} />
-          <Route path="transfer" element={<CustomerDashboard />} />
-          <Route path="beneficiaries" element={<CustomerDashboard />} />
-          <Route path="history" element={<CustomerDashboard />} />
+          <Route path="accounts" element={<AccountsPage />} />
+          <Route path="transfer" element={<TransferPage />} />
+          <Route path="beneficiaries" element={<BeneficiariesPage />} />
+          <Route path="history" element={<TransactionsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="profile" element={<ProfileSettingsPage />} />
         </Route>
 
         {/* Analyst Route Group under /analyst */}

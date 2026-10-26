@@ -45,6 +45,8 @@ export const AppShell: React.FC = () => {
       { label: 'Send Money', path: '/app/transfer', icon: 'bi-arrow-left-right' },
       { label: 'Beneficiaries', path: '/app/beneficiaries', icon: 'bi-person-lines-fill' },
       { label: 'Transactions', path: '/app/history', icon: 'bi-clock-history' },
+      { label: 'Notifications', path: '/app/notifications', icon: 'bi-bell' },
+      { label: 'Profile & Settings', path: '/app/profile', icon: 'bi-person-gear' },
     ];
   };
 
